@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Sfondo arrotondato scuro -->
+  <rect width="32" height="32" rx="8" fill="#0f172a"/>
+  
+  <!-- Onde sonore/diffusione (Brand-500: #3b82f6) -->
+  <path d="M18 8C21.3137 8 24 10.6863 24 14C24 17.3137 21.3137 20 18 20" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+  </path>
+  <path d="M20 11C21.6569 11 23 12.3431 23 14C23 15.6569 21.6569 17 20 17" stroke="#60a5fa" stroke-width="2" stroke-linecap="round">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+  </path>
+
+  <!-- Corpo del Megafono -->
+  <path d="M8 12L16 9V19L8 16V12Z" fill="white"/>
+  <path d="M16 9L18 9C19.1046 9 20 9.89543 20 11V17C20 18.1046 19.1046 19 18 19L16 19" fill="#3b82f6"/>
+  <path d="M11 16.5C11 17.8807 9.88071 19 8.5 19C7.11929 19 6 17.8807 6 16.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
