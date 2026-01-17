@@ -1,73 +1,93 @@
-# React + TypeScript + Vite
+# Megaphone Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The official landing page for **Megaphone**, a real-time connectivity layer designed to simplify event-driven communication between microservices and frontend clients.
 
-Currently, two official plugins are available:
+[![Built with React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
+[![Built with Vite](https://img.shields.io/badge/Vite-6-purple.svg)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg)](https://tailwindcss.com/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 📣 What is Megaphone?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Megaphone abstracts the complexity of long-polling and streaming. It allows developers to build resilient, event-driven architectures without having to manage persistent connections within their business logic.
 
-## Expanding the ESLint configuration
+By acting as a buffer and streaming bridge, Megaphone ensures that your microservices can push updates and your clients can receive them reliably, even across network blips.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✨ Key Features
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Smart Buffering**: Automatic message buffering for temporarily disconnected clients. Never miss an event.
+- **Protocol Agnostic**: Standard HTTP streaming support, designed for extensibility.
+- **Kubernetes Native**: Easy deployment with a dedicated Operator and standard K8s CRDs.
+- **Developer First**: Ready-to-use clients for Rust and TypeScript with clean, typed APIs.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠 Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vitejs.dev/) (using `rolldown-vite`)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Syntax Highlighting**: [React Syntax Highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (Latest LTS recommended)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/dghilardi/megaphone-website.git
+   cd megaphone-website
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Build for production:
+   ```bash
+   npm run build
+   ```
+
+## 📂 Project Structure
+
+```text
+src/
+├── components/        # UI Components (Hero, Features, HowItWorks, etc.)
+├── assets/           # Images, fonts, and static assets
+├── App.tsx           # Main application layout
+├── main.tsx          # Application entry point
+└── index.css         # Global styles and Tailwind imports
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🏗 How It Works
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Megaphone uses a simple **Producer-Consumer** model:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Create a Channel**: Dynamically generate read/write addresses.
+2. **Publish Events**: Microservices POST data to the producer address.
+3. **Stream to Client**: Frontend clients connect to the consumer address and receive a real-time stream.
+
+## 🌐 Ecosystem
+
+Megaphone is more than just a landing page. It's a complete ecosystem:
+
+- **[Megaphone Server](https://github.com/dghilardi/megaphone)**: The core Rust reverse proxy and streaming server.
+- **[Megaphone JS](https://github.com/dghilardi/megaphone-js)**: TypeScript client for browser and Node.js.
+- **[Megaphone Operator](https://github.com/dghilardi/megaphone-operator)**: Kubernetes Operator for managing deployments.
+- **[Megaphone Client](https://github.com/dghilardi/megaphone-client)**: Rust client library for backend services.
+
+---
+
+Built with ❤️ by the Megaphone team.
