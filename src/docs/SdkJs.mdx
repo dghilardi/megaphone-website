@@ -1,0 +1,24 @@
+## JavaScript Client
+
+Use the `megaphone-js` package for browser and Node.js applications.
+
+<div className="bg-black/50 rounded-lg overflow-hidden">
+
+```typescript
+import { MegaphonePoller } from 'megaphone-client';
+import { firstValueFrom } from 'rxjs';
+
+const poller = new MegaphonePoller('http://localhost:3000', 100);
+
+const stream = await poller.newUnboundedStream(async channel => {
+    // Logic to fetch channel details from your backend
+    return {
+        channelAddress: { consumer: 'uuid...', producer: '' },
+        streamIds: ['new-message'],
+    }
+});
+
+stream.subscribe(msg => console.log(msg));
+```
+
+</div>

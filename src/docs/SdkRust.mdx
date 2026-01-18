@@ -1,0 +1,24 @@
+## Rust Client
+
+Use the `megaphone-client` crate to interact with the server from your Rust applications.
+
+<div className="bg-black/50 rounded-lg overflow-hidden">
+
+```rust
+use megaphone::client::{MegaphoneClient, model::StreamSpec};
+use futures::StreamExt;
+
+// Initialize client
+let mut client = MegaphoneClient::new("http://localhost:3080/read", 100);
+
+// Subscribe to a stream
+let mut msg_stream = client.new_unbounded_stream::<_, _, _, Payload>(
+    initialize_channel
+).await?;
+
+while let Some(msg) = msg_stream.next().await {
+    println!("Received: {:?}", msg);
+}
+```
+
+</div>

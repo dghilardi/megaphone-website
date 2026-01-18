@@ -1,0 +1,54 @@
+## Quick Start
+
+Run the server with the required environment variables. The `MEGAPHONE_AGENT` variable is mandatory.
+
+<div className="bg-black/50 rounded-lg overflow-hidden mb-8">
+
+```bash
+docker run -p 3000:3000 -e MEGAPHONE_AGENT=main dghila/megaphone:latest
+```
+
+</div>
+
+### Configuration
+
+Megaphone is configured via environment variables. Use the prefix `MEGAPHONE_`.
+
+<div className="overflow-x-auto border border-white/10 rounded-lg">
+  <table className="w-full text-left text-sm text-gray-300">
+    <thead className="bg-white/5 uppercase font-semibold text-gray-200">
+      <tr>
+        <th className="px-6 py-3">Variable</th>
+        <th className="px-6 py-3">Required</th>
+        <th className="px-6 py-3">Default</th>
+        <th className="px-6 py-3">Description</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-white/10">
+      <tr>
+        <td className="px-6 py-4 font-mono text-brand-400">MEGAPHONE_AGENT</td>
+        <td className="px-6 py-4 text-green-400 font-bold">Yes</td>
+        <td className="px-6 py-4 text-gray-500">-</td>
+        <td className="px-6 py-4">The unique identifier for this agent/instance.</td>
+      </tr>
+      <tr>
+        <td className="px-6 py-4 font-mono text-brand-400">MEGAPHONE_ADDRESS</td>
+        <td className="px-6 py-4">No</td>
+        <td className="px-6 py-4 font-mono">0.0.0.0:3000</td>
+        <td className="px-6 py-4">The HTTP server bind address.</td>
+      </tr>
+      <tr>
+        <td className="px-6 py-4 font-mono text-brand-400">MEGAPHONE_GRPC_ADDRESS</td>
+        <td className="px-6 py-4">No</td>
+        <td className="px-6 py-4 font-mono">0.0.0.0:3001</td>
+        <td className="px-6 py-4">The gRPC server bind address (for sync).</td>
+      </tr>
+      <tr>
+        <td className="px-6 py-4 font-mono text-brand-400">MEGAPHONE_POLL_DURATION_MILLIS</td>
+        <td className="px-6 py-4">No</td>
+        <td className="px-6 py-4 font-mono">20000</td>
+        <td className="px-6 py-4">Long-polling duration in milliseconds.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

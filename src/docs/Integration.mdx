@@ -1,0 +1,9 @@
+## Integration Pattern
+
+A common pattern for integrating Megaphone is the "Channel Handshake".
+
+1. **Client** asks your **Backend** for a channel (e.g., "Join Room X").
+2. **Backend** calls Megaphone to `/create` a channel (or retrieves an existing one).
+3. **Backend** returns the `consumerAddress` to the Client and keeps the `producerAddress` for itself.
+4. **Client** connects to Megaphone using the `consumerAddress`.
+5. **Backend** publishes events to the `producerAddress`.

@@ -1,0 +1,7 @@
+## Channels
+
+Channels are ephemeral communication pipes.
+
+- **Buffering:** Each channel holds a buffer of 100 messages. If a client disconnects briefly, messages are saved.
+- **TTL:** Channels automatically delete after 1 minute of inactivity (no reads/writes).
+- **Security:** Channels are identified by random UUIDs, acting as capability tokens.
