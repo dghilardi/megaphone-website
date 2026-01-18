@@ -136,6 +136,7 @@ export default function Docs() {
           <aside
             className={`
             fixed inset-0 z-40 bg-dark-bg/95 backdrop-blur-xl lg:static lg:bg-transparent lg:w-64 lg:block overflow-y-auto transition-transform duration-300 ease-in-out
+            lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)]
             ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `}
           >
