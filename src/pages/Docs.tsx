@@ -72,6 +72,12 @@ const components = {
   thead: (props: any) => <thead className="bg-white/5 uppercase font-semibold text-gray-200" {...props} />,
   th: (props: any) => <th className="px-6 py-3" {...props} />,
   td: (props: any) => <td className="px-6 py-4" {...props} />,
+  strong: (props: any) => {
+    if (props.children === "Yes") {
+      return <span className="text-green-400 font-bold" {...props} />;
+    }
+    return <strong className="font-bold text-white" {...props} />;
+  },
   pre: ({ children }: any) => (
     <pre className="bg-black/50 rounded-lg overflow-hidden mb-8 last:mb-0">
       {children}
