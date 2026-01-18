@@ -2,8 +2,6 @@
 
 Use the `megaphone-js` package for browser and Node.js applications.
 
-<div className="bg-black/50 rounded-lg overflow-hidden">
-
 ```typescript
 import { MegaphonePoller } from 'megaphone-client';
 import { firstValueFrom } from 'rxjs';
@@ -20,5 +18,3 @@ const stream = await poller.newUnboundedStream(async channel => {
 
 stream.subscribe(msg => console.log(msg));
 ```
-
-</div>

@@ -2,8 +2,6 @@
 
 Use the `megaphone-client` crate to interact with the server from your Rust applications.
 
-<div className="bg-black/50 rounded-lg overflow-hidden">
-
 ```rust
 use megaphone::client::{MegaphoneClient, model::StreamSpec};
 use futures::StreamExt;
@@ -20,5 +18,3 @@ while let Some(msg) = msg_stream.next().await {
     println!("Received: {:?}", msg);
 }
 ```
-
-</div>

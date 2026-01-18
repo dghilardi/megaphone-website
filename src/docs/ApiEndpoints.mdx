@@ -1,16 +1,19 @@
 ## HTTP Endpoints
 
-<div className="space-y-6">
-  <div>
-    <h3 className="text-xl font-semibold text-white mb-2">Create Channel</h3>
-    <code className="bg-black/50 px-2 py-1 rounded text-brand-400">POST /create</code>
-  </div>
-  <div>
-    <h3 className="text-xl font-semibold text-white mb-2">Write Message</h3>
-    <code className="bg-black/50 px-2 py-1 rounded text-brand-400">POST /write/&#123;producer-address&#125;/&#123;stream-id&#125;</code>
-  </div>
-  <div>
-    <h3 className="text-xl font-semibold text-white mb-2">Read Stream</h3>
-    <code className="bg-black/50 px-2 py-1 rounded text-brand-400">GET /read/&#123;consumer-address&#125;</code>
-  </div>
-</div>
+<Endpoint 
+  title="Create Channel" 
+  method="POST" 
+  path="/create" 
+/>
+
+<Endpoint 
+  title="Write Message" 
+  method="POST" 
+  path="/write/{producer-address}/{stream-id}" 
+/>
+
+<Endpoint 
+  title="Read Stream" 
+  method="GET" 
+  path="/read/{consumer-address}" 
+/>

@@ -15,6 +15,7 @@ import {
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { MDXProvider } from "@mdx-js/react";
+import { Callout, Card, CardGrid, Endpoint } from "../components/docs/DocComponents";
 
 import Introduction from "../docs/Introduction.mdx";
 import Installation from "../docs/Installation.mdx";
@@ -60,7 +61,22 @@ const components = {
   h1: (props: any) => <h1 className="text-4xl font-bold text-white mb-6" {...props} />,
   h2: (props: any) => <h2 className="text-3xl font-bold text-white mb-6" {...props} />,
   h3: (props: any) => <h3 className="text-xl font-semibold text-white mb-4" {...props} />,
-  pre: ({ children }: any) => <>{children}</>,
+  p: (props: any) => <p className="leading-relaxed mb-4 last:mb-0" {...props} />,
+  ul: (props: any) => <ul className="list-disc pl-6 space-y-2 mb-6 text-gray-300" {...props} />,
+  ol: (props: any) => <ol className="list-decimal pl-6 space-y-4 mb-6 text-gray-300" {...props} />,
+  table: (props: any) => (
+    <div className="overflow-x-auto border border-white/10 rounded-lg mb-8">
+      <table className="w-full text-left text-sm text-gray-300 divide-y divide-white/10" {...props} />
+    </div>
+  ),
+  thead: (props: any) => <thead className="bg-white/5 uppercase font-semibold text-gray-200" {...props} />,
+  th: (props: any) => <th className="px-6 py-3" {...props} />,
+  td: (props: any) => <td className="px-6 py-4" {...props} />,
+  pre: ({ children }: any) => (
+    <pre className="bg-black/50 rounded-lg overflow-hidden mb-8 last:mb-0">
+      {children}
+    </pre>
+  ),
   code: ({ className, children, ...props }: any) => {
     const match = /language-(\w+)/.exec(className || "");
     return match ? (
@@ -69,14 +85,19 @@ const components = {
         children={String(children).replace(/\n$/, "")}
         style={vscDarkPlus}
         language={match[1]}
-        customStyle={{ margin: 0, background: "transparent" }}
+        PreTag="div"
+        customStyle={{ margin: 0, padding: '1.5rem', background: 'transparent' }}
       />
     ) : (
-      <code className={className} {...props}>
+      <code className="bg-white/10 px-1.5 py-0.5 rounded text-brand-400 font-mono text-[0.9em]" {...props}>
         {children}
       </code>
     );
   },
+  Callout,
+  Card,
+  CardGrid,
+  Endpoint,
 };
 
 export default function Docs() {
