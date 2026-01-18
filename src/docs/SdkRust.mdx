@@ -1,20 +1,113 @@
+import { Callout } from "../components/docs/DocComponents";
+
 ## Rust Client
 
-Use the `megaphone-client` crate to interact with the server from your Rust applications.
+The `megaphone-client` crate provides a robust, async Rust client for consuming Megaphone streams. It handles connection management, buffering, and deserialization automatically.
+
+### Installation
+
+Add the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+megaphone-client = "0.8" # Check crates.io for the latest version
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+```
+
+### Usage
+
+The core of the library is the `MegaphoneClient`. It uses a "Channel Handshake" pattern where you provide a closure that knows how to negotiate a channel with your backend.
+
+#### 1. Define your Message Payload
+
+First, define the struct that represents the messages you expect to receive.
 
 ```rust
-use megaphone::client::{MegaphoneClient, model::StreamSpec};
-use futures::StreamExt;
+use serde::Deserialize;
 
-// Initialize client
-let mut client = MegaphoneClient::new("http://localhost:3080/read", 100);
-
-// Subscribe to a stream
-let mut msg_stream = client.new_unbounded_stream::<_, _, _, Payload>(
-    initialize_channel
-).await?;
-
-while let Some(msg) = msg_stream.next().await {
-    println!("Received: {:?}", msg);
+#[derive(Deserialize, Debug)]
+struct ChatMessage {
+    user: String,
+    text: String,
 }
 ```
+
+#### 2. Initialize the Client
+
+Create a client instance pointing to your Megaphone server's **read** endpoint.
+
+```rust
+use megaphone::client::MegaphoneClient;
+
+// url: The base URL of the megaphone server (or nginx proxy)
+// buffer: Size of the deduplication buffer (prevents duplicate processing on reconnect)
+let mut client = MegaphoneClient::new("http://localhost:3000/read", 100);
+```
+
+#### 3. Create a Stream (The Handshake)
+
+This is the most critical part. You don't connect directly to a raw URL. Instead, you provide a function that:
+1.  Checks if we already have a `channel_address` (reconnect scenario).
+2.  Calls your backend to join a room/topic.
+3.  Returns a `StreamSpec` containing the channel ID and the streams you want to subscribe to.
+
+```rust
+use megaphone::client::model::StreamSpec;
+use std::collections::HashMap;
+
+// This function mimics your backend API call
+async fn join_chat_room(current_channel: Option<String>) -> anyhow::Result<StreamSpec> {
+    let client = reqwest::Client::new();
+    
+    // If we have a current_channel, send it in the header so the backend
+    // can re-attach us to the existing channel instead of creating a new one.
+    let mut req = client.post("http://my-backend-api/chat/join");
+    if let Some(channel) = current_channel {
+        req = req.header("use-channel", channel);
+    }
+    
+    let res = req.send().await?.json::<HashMap<String, String>>().await?;
+    
+    Ok(StreamSpec {
+        // The consumer address returned by your backend
+        channel: res.get("channelUuid").unwrap().to_string(),
+        // The specific topics/stream IDs you want to listen to on this channel
+        streams: vec![String::from("main-chat"), String::from("alerts")],
+    })
+}
+```
+
+#### 4. Consume the Stream
+
+Use `new_unbounded_stream` to start receiving messages.
+
+```rust
+use futures::StreamExt;
+
+// ... inside your async main function
+
+let mut stream = client.new_unbounded_stream::<_, _, _, ChatMessage>(join_chat_room).await?;
+
+println!("Connected to chat!");
+
+while let Some(msg_result) = stream.next().await {
+    match msg_result {
+        Ok(msg) => println!("[{}]: {}", msg.user, msg.text),
+        Err(e) => eprintln!("Error parsing message: {}", e),
+    }
+}
+```
+
+### Advanced: Delayed Response
+
+Sometimes you only want to wait for a single response (e.g., waiting for a long-running job to finish). `delayed_response` is a helper for this "Command-Query" pattern.
+
+```rust
+let response: JobResult = client.delayed_response(wait_for_job_completion).await?;
+println!("Job finished: {:?}", response);
+```
+
+<Callout type="info" title="Automatic Reconnection">
+The `MegaphoneClient` automatically handles HTTP streaming disconnections. When the stream ends (e.g., server timeout or network blip), it attempts to reconnect using the same channel address logic defined in your initializer.
+</Callout>

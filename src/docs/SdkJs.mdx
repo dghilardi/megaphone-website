@@ -1,20 +1,119 @@
+import { Callout } from "../components/docs/DocComponents";
+
 ## JavaScript Client
 
-Use the `megaphone-js` package for browser and Node.js applications.
+The `megaphone-client` (npm package) provides a TypeScript-ready client for browser and Node.js environments. It leverages `RxJS` for powerful stream manipulation.
+
+### Installation
+
+```bash
+npm install megaphone-client rxjs
+```
+
+### Usage
+
+The `MegaphonePoller` class manages the connection. Like the Rust client, it uses a factory function to handle the "Channel Handshake" with your backend.
+
+#### 1. Initialize the Poller
 
 ```typescript
 import { MegaphonePoller } from 'megaphone-client';
-import { firstValueFrom } from 'rxjs';
 
+// baseUrl: The base URL of the megaphone server
+// bufferSize: Deduplication buffer size
 const poller = new MegaphonePoller('http://localhost:3000', 100);
+```
 
-const stream = await poller.newUnboundedStream(async channel => {
-    // Logic to fetch channel details from your backend
-    return {
-        channelAddress: { consumer: 'uuid...', producer: '' },
-        streamIds: ['new-message'],
+#### 2. Define the Handshake Factory
+
+This function is responsible for contacting your backend to get the channel details.
+
+```typescript
+// Define your message type
+interface ChatMessage {
+    user: string;
+    text: string;
+}
+
+// The factory function
+const chatRoomFactory = async (currentProducerAddress?: string) => {
+    const headers: Record<string, string> = {};
+    
+    // If we are reconnecting, tell the backend to reuse the channel
+    if (currentProducerAddress) {
+        headers['use-channel'] = currentProducerAddress;
     }
+
+    const response = await fetch('http://my-backend-api/chat/join', {
+        method: 'POST',
+        headers
+    });
+    
+    const data = await response.json();
+
+    return {
+        channelAddress: {
+            consumer: data.consumerAddress, // The address to read from
+            producer: data.producerAddress  // The address to write to (kept internally)
+        },
+        streamIds: ['main-chat'] // Topics to subscribe to
+    };
+};
+```
+
+#### 3. Subscribe to the Stream
+
+`newUnboundedStream` returns an RxJS `Observable`.
+
+```typescript
+const stream$ = await poller.newUnboundedStream<ChatMessage>(chatRoomFactory);
+
+const subscription = stream$.subscribe({
+    next: (chunk) => {
+        // chunk.body contains your data
+        console.log(`[${chunk.ts}] ${chunk.body.user}: ${chunk.body.text}`);
+    },
+    error: (err) => console.error('Stream error:', err),
+    complete: () => console.log('Stream closed')
 });
 
-stream.subscribe(msg => console.log(msg));
+// To stop listening:
+// subscription.unsubscribe();
 ```
+
+### Use Cases
+
+#### Real-time Notifications
+Perfect for showing toast notifications in a React/Vue app without establishing a heavy WebSocket connection for every user.
+
+```typescript
+// React Example
+useEffect(() => {
+    const poller = new MegaphonePoller('...', 100);
+    let sub;
+
+    const setup = async () => {
+        const stream$ = await poller.newUnboundedStream(notificationFactory);
+        sub = stream$.subscribe(msg => toast(msg.body.content));
+    };
+
+    setup();
+
+    return () => sub?.unsubscribe();
+}, []);
+```
+
+#### Long-Running Tasks (Delayed Response)
+If you have an operation that takes 10+ seconds (generating a report, processing a video), use `newDelayedResponse`. It waits for a single message and then completes the stream.
+
+```typescript
+const jobStream$ = await poller.newDelayedResponse<JobResult>(waitForJobFactory);
+
+jobStream$.subscribe(result => {
+    console.log("Job complete:", result.body);
+});
+```
+
+<Callout type="warning" title="RxJS Dependency">
+This library relies on `RxJS`. If you are not familiar with Observables, think of them as event listeners that you can `.subscribe()` to. The `chunk` object contains metadata like timestamp (`ts`) and stream ID (`sid`) alongside your `body`.
+</Callout>
