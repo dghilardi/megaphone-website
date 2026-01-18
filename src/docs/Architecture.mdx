@@ -1,12 +1,132 @@
 ## Architecture
 
-Megaphone acts as a buffer and streaming bridge. The architecture is built around a decoupling of **Producers** (your backend services) and **Consumers** (frontend clients).
+Megaphone is designed with a **shared-nothing, multi-instance architecture**. This allows it to scale horizontally without complex synchronization or shared databases.
 
-<CardGrid>
-  <Card title="Producers">
-    Write messages to a specific channel address via simple HTTP POST requests. They don't need to know if a client is connected.
-  </Card>
-  <Card title="Consumers">
-    Connect to a channel via a long-lived HTTP GET request (streaming). They receive messages in real-time.
-  </Card>
-</CardGrid>
+Each Megaphone instance is independent and manages its own set of channels. The "glue" that holds the cluster together is a smart routing layer (usually Nginx or an Ingress Controller) and the concept of **Agents**.
+
+### Core Concepts
+
+#### 1. The Agent Name
+Every Megaphone instance is assigned one or more **Agent Names** (e.g., `megaphone-0`, `us-east-shard`, `main`).
+When a channel is created, it is bound to a specific agent. The resulting Channel ID is prefixed with that agent's name.
+
+**Example Channel ID:**
+```text
+megaphone-0.c4ca4238a0b923820dcc509a6f75849b
+└──┬──────┘ └──────────────┬───────────────┘
+   │                       │
+Agent Name             Unique ID
+```
+
+#### 2. Smart Routing
+Since the Channel ID contains the Agent Name, the entrypoint (Nginx) knows exactly which instance holds the channel just by looking at the URL.
+
+*   **Request:** `GET /read/megaphone-0.c4ca...`
+*   **Routing Logic:** Extract `megaphone-0` → Route to `http://megaphone-0.svc:3000`
+
+### Kubernetes Implementation
+
+Megaphone fits perfectly into a Kubernetes **StatefulSet** deployment. By using the Pod Name as the Agent Name, we get stable, predictable routing.
+
+#### The Setup
+1.  **StatefulSet**: Deploys Megaphone instances (`megaphone-0`, `megaphone-1`).
+2.  **Headless Service**: Creates DNS records for each pod (`megaphone-0.megaphone-headless`, etc.).
+3.  **Entrypoint (Nginx)**: Routes traffic based on the prefix in the URL.
+
+#### 1. Headless Service
+Allows individual pods to be addressed via DNS.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: megaphone-headless
+spec:
+  clusterIP: None # Headless
+  selector:
+    app: megaphone
+  ports:
+    - port: 3000
+      name: http
+```
+
+#### 2. StatefulSet
+We use the **Downward API** to set the `MEGAPHONE_AGENT` environment variable to the Pod's name.
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: megaphone
+spec:
+  serviceName: "megaphone-headless"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: megaphone
+  template:
+    metadata:
+      labels:
+        app: megaphone
+    spec:
+      containers:
+      - name: megaphone
+        image: dghila/megaphone:latest
+        env:
+        - name: MEGAPHONE_AGENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name # Sets agent to "megaphone-0", "megaphone-1"...
+        ports:
+        - containerPort: 3000
+```
+
+#### 3. Nginx Routing (ConfigMap)
+The Nginx configuration extracts the agent name from the URL and uses it to proxy the request to the correct pod DNS.
+
+```nginx
+http {
+    # Kubernetes internal DNS resolver
+    resolver kube-dns.kube-system.svc.cluster.local;
+
+    server {
+        listen 80;
+
+        # 1. Create Channel (Load Balanced)
+        # Randomly picks an instance to create the channel
+        location /create {
+            proxy_pass http://megaphone-headless:3000; 
+        }
+
+        # 2. Read/Write (Direct Routing)
+        # Extracts "agent" from /read/agent.channel_id
+        location ~ ^/(read|write)/([^.]+)\.(.*)$ {
+            set $action $1;
+            set $agent $2;
+            set $rest $3;
+            
+            # Dynamic proxy to the specific pod
+            proxy_pass http://$agent.megaphone-headless:3000/$action/$agent.$rest;
+        }
+    }
+}
+```
+
+### Non-Kubernetes Environments
+
+If you are not using Kubernetes, the same principles apply, but you need to handle the service discovery manually.
+
+1.  **Static Routing**: Configure your Nginx with a static map if your instances are fixed.
+    ```nginx
+    map $agent $upstream {
+        instance-a  10.0.0.1:3000;
+        instance-b  10.0.0.2:3000;
+    }
+    ```
+2.  **Consul/Etcd**: Use a service discovery tool to generate the Nginx configuration dynamically or use a smart proxy like Traefik or Envoy that can integrate with your registry.
+
+### High Availability & Maintenance
+
+Because instances are independent:
+*   **Failover**: If `megaphone-0` goes down, only channels on that specific instance are affected.
+*   **Maintenance**: You can "drain" an instance by stopping new channel creation on it (via configuration or load balancer weights) and waiting for existing channels to expire (TTL) before shutting it down.
