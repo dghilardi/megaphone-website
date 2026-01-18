@@ -95,7 +95,7 @@ const components = {
         customStyle={{ margin: 0, padding: '1.5rem', background: 'transparent' }}
       />
     ) : (
-      <code className="bg-white/10 px-1.5 py-0.5 rounded text-brand-400 font-mono text-[0.9em]" {...props}>
+      <code className="px-1.5 py-0.5 rounded text-brand-400 font-mono text-[0.9em]" {...props}>
         {children}
       </code>
     );
