@@ -7,12 +7,12 @@ import remarkGfm from 'remark-gfm'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    { 
-      enforce: 'pre', 
-      ...mdx({ 
+    {
+      enforce: 'pre',
+      ...mdx({
         providerImportSource: "@mdx-js/react",
         remarkPlugins: [remarkGfm]
-      }) 
+      })
     },
     react(),
     visualizer({
@@ -20,7 +20,7 @@ export default defineConfig({
       filename: 'bundle-stats.html',
     }),
   ],
-  base: './',
+  base: '/megaphone-website/',
   build: {
     rollupOptions: {
       output: {
